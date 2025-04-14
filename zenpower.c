@@ -250,7 +250,7 @@ static unsigned int get_ccd_temp(struct zenpower_data *data, u32 ccd_addr)
 	return (regval & 0xfff) * 125 - 305000;
 }
 
-int static debug_addrs_arr[] = {
+static int debug_addrs_arr[] = {
 	F17H_M01H_SVI + 0x8, F17H_M01H_SVI + 0xC, F17H_M01H_SVI + 0x10,
 	F17H_M01H_SVI + 0x14, 0x000598BC, 0x0005994C, F17H_M70H_CCD_TEMP(0),
 	F17H_M70H_CCD_TEMP(1), F17H_M70H_CCD_TEMP(2), F17H_M70H_CCD_TEMP(3),
@@ -491,7 +491,9 @@ static int zenpower_read_labels(struct device *dev,
 
 static void kernel_smn_read(struct pci_dev *pdev, u16 node_id, u32 address, u32 *regval)
 {
-	amd_smn_read(node_id, address, regval);
+	ret = amd_smn_read(node_id, address, regval);
+	if (ret)
+	    return ret;
 }
 
 // fallback method from k10temp
@@ -592,7 +594,7 @@ static int zenpower_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 		if (pdev->vendor == misc->vendor && pdev->device == misc->device) {
 			data->kernel_smn_support = true;
 			data->read_amdsmn_addr = kernel_smn_read;
-			data->node_id = amd_pci_dev_to_node_id(pdev);
+			data->node_id = 0;
 			break;
 		}
 	}
